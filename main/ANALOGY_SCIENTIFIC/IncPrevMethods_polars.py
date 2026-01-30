@@ -1,3 +1,4 @@
+from typing import Optional, Union
 from datetime import date, datetime
 from typing import List, Dict, Callable
 import numpy as np
@@ -20,12 +21,11 @@ class IncPrev():
     |    STUDY_END_DATE (datetime): End date of the study. Should be same as the value entered in dexter for data extract.
     |    STUDY_START_DATE (datetime): Start date of the study. Should be same as the value entered in dexter for data extract.
     |    FILENAME (string): Name of the data file.
-    |    DATABASE_NAME (string): OPTIONS: AURUM, GOLD, THIN, IMRD.
 
     |Optional Args:
     |    BASELINE_DATE_LIST (list of strings): Default: []. Defines the columns to base event dates on. Defaults to all column names beginning with "BD_".
     |    DEMOGRAPHY (list of strings): Default: []. Defines columns to use as grouping variables. Defaults to any of AGE_CATG, SEX, ETHNICITY, COUNTRY, HEALTH_AUTH, TOWNSEND found in the column names.
-    |    cols (list of strings): Default: None. List of column names to pass into usecols of pd.read_csv in IncPrev.read(). Must include PRACTICE_PATIENT_ID, PRACTICE_ID, INDEX_DATE, START_DATE, END_DATE, COLLECTION_DATE, TRANSFER_DATE, DEATH_DATE, REGISTRATION_STATUS, additionally with all BASELINE_DATE_LIST and DEMOGRAPHY. Used for efficiency.
+    |    cols (list of strings): Default: None. List of column names to pass into usecols of pd.read_csv in IncPrev.read(). Must include INDEX_DATE, END_DATE, additionally with all BASELINE_DATE_LIST and DEMOGRAPHY. Used for efficiency.
     |    skiprows_i (list of ints): Default: None. List of indexes to pass into skiprows of pd.read_csv in IncPrev.read(). Indexes must be inclusive of header (header index = 0).
     |    read_data (bool): Default True. If True, FILENAME arge must be defined. If false, DEMOGRAPHY, BASELINE_DATE_LIST args must be defined. Defines whether raw_data will be assigned during (True) or post (False) initialisation.
     |    SMALL_FP_VAL (float): Default: 1e-8. Small constant used during calculations to avoid values of 0? [check].
@@ -43,7 +43,6 @@ class IncPrev():
     |    STUDY_START_DATE (string): Defined above.
     |    INCREMENT_BY_MONTH (int): Defined above.
     |    FILENAME (string): Defined above.
-    |    DATABASE_NAME (string): Defined above.
     |    BASELINE_DATE_LIST (list): Defined above.
     |    DEMOGRAPHY (list): Defined above.
     |    raw_data (pl.DataFrame): The data used to calculate incidence rate and point prevalence.
@@ -66,110 +65,91 @@ class IncPrev():
     __slots__ = 'PER_PY', 'ALPHA', \
         'STUDY_END_DATE', 'STUDY_START_DATE', \
         'BASELINE_DATE_LIST', 'DEMOGRAPHY', 'FILENAME', 'raw_data', \
-        'DATABASE_NAME', "dat_fmt", "verbose", "DataKeys", "StudyDesignKeys", \
+        "date_fmt", "verbose", "DataKeys", "StudyDesignKeys", \
         "increment_years", "increment_months", "increment_days", \
         "BASELINE_DATE_LIST"
 
     def __init__(self,
-                 STUDY_END_DATE,
-                 STUDY_START_DATE,
-                 FILENAME,
-                 DATABASE_NAME,
-                 BASELINE_DATE_LIST=[],
-                 DEMOGRAPHY=[],
-                 cols = None,
+                 STUDY_END_DATE: datetime,
+                 STUDY_START_DATE: datetime,
+                 FILENAME: str,
+                 BASELINE_DATE_LIST: list[str] = [],
+                 DEMOGRAPHY: list[str] = [],
+                 cols: Optional[list[str]] = None,
                  read_data = True,
-                 increment_years=1,
-                 increment_months=0,
-                 increment_days=0,
-                 PER_PY=100_000,
-                 ALPHA=0.05,
-                 fileType = None,
-                 verbose = False):
+                 increment_years: int = 1,
+                 increment_months: int = 0,
+                 increment_days: int = 0,
+                 PER_PY: Union[int,float] = 100_000,
+                 ALPHA: float = 0.05,
+                 col_index_date: str = "INDEX_DATE",
+                 col_end_date: str = "END_DATE",
+                 date_fmt: str = "%Y-%m-%d",
+                 verbose: bool = False) -> None:
 
         self.PER_PY, self.ALPHA,\
         self.STUDY_END_DATE, self.STUDY_START_DATE, \
         self.DEMOGRAPHY, self.FILENAME, \
-        self.DATABASE_NAME, self.increment_years, \
+        self.increment_years, \
         self.increment_months, self.increment_days, \
         self.BASELINE_DATE_LIST = \
         PER_PY, ALPHA, \
         STUDY_END_DATE, STUDY_START_DATE, \
         DEMOGRAPHY, FILENAME,\
-        DATABASE_NAME, increment_years, increment_months, increment_days, \
+        increment_years, increment_months, increment_days, \
         BASELINE_DATE_LIST
 
-        self.dat_fmt = "%Y-%m-%d"
+        self.date_fmt = date_fmt
         self.verbose = verbose
 
+        self.raw_data: Optional[pl.DataFrame]
         self.STUDY_END_DATE += relativedelta(years=0, months=0, days=1)
         if read_data == True:
-            self.read(cols, fileType)
+            self.read(cols,)
         else:
             self.raw_data = None
 
         self.DataKeys = {
-                "INDEX_DATE_COL": "INDEX_DATE",
-                "END_DATE_COL": "END_DATE",
+                "INDEX_DATE_COL": col_index_date,
+                "END_DATE_COL": col_end_date,
                 "EVENT_DATE_COL": "EVENT_DATE",
                 }
         self.StudyDesignKeys = {
                 "SMALL_FP_VAL": 1e-8,
                 }
 
-    def read(self, cols, fileType="csv"):
+
+    def read(self, cols: Optional[Union[str,list[str]]],) -> None:
         if cols is None:
             cols = "*"
-        if fileType=="csv":
+        if self.FILENAME[-3:] == "csv":
             self.raw_data = (
-                    pl.scan_csv(self.FILENAME).lazy()
+                    pl.scan_csv(self.FILENAME, infer_schema_length=0,)
                     .select(pl.col(cols))
             )
-        elif fileType == "parquet":
+        elif self.FILENAME[-7:] == "parquet":
             self.raw_data = (
-                    pl.scan_parquet(self.FILENAME).lazy()
-                    .select(pl.col(cols))
+                    pl.scan_parquet(self.FILENAME,)
+                    .select(pl.col(cols).cast(pl.Utf8))
             )
+        else:
+            raise Exception("Input file type not csv or parquet.")
 
         self.raw_data = (
             self.raw_data
             .with_columns(
-                pl.col(["INDEX_DATE",
-                    "START_DATE",
-                    "END_DATE",
-                    "COLLECTION_DATE",
-                    "TRANSFER_DATE",
-                    "DEATH_DATE"]).str.strptime(pl.Date, format="%Y-%m-%d")
+                pl.col([self.DataKeys["INDEX_DATE"],
+                    self.DataKeys["END_DATE"],]).str.strptime(pl.Date, format=self.date_fmt,)
             )
         )
-         # This logic is IMRD database specific. REGISTRATION_STATUS with value 99 in IMRD database means patient is dead.
-         # To ensure records are properly updated the DEATH_DATE for those patients whose REGISTRATION_STATUS == 99 are
-         # set to the TRANSFER_DATE.
-        if self.DATABASE_NAME == "IMRD":
-            self.raw_data = (
-                self.raw_data
-                .with_columns(
-                    pl.when(
-                        (pl.col("*").is_null()) & (pl.col("REGISTRATION_STATUS")==99)
-                            .then(pl.col("TRANSFER_DATE"))
-                            .otherwise(pl.col("DEATH_DATE"))
-                    ).alias("DEATH_DATE")
-                )
-            )
 
         if len(self.BASELINE_DATE_LIST) == 0:
              self.BASELINE_DATE_LIST = [col for col in self.raw_data.columns if col.startswith('BD_')]
 
         self.raw_data = self.raw_data.with_columns(
             pl.col(self.BASELINE_DATE_LIST).str.strptime(pl.Date,
-                                                         format=self.dat_fmt)
+                                                         format=self.date_fmt)
         )
-
-          # Only run if the database is IMRD.
-        if self.DATABASE_NAME == "IMRD":
-            self.raw_data.with_columns(
-                pl.min(["END_DATE", "DEATH_DATE"]).alias("END_DATE")
-            )
 
         #Missing stratification vars set to "null"
         catgs = list(set([sublist if isinstance(sublist, str) else item \
@@ -179,7 +159,8 @@ class IncPrev():
                 pl.col(catgs).fill_null("null")
                 )
 
-    def byars_lower(self, count, denominator):
+
+    def byars_lower(self, count: int, denominator: Union[float,int]) -> float:
         if count < 10:
             b = chi2.ppf((self.ALPHA / 2), (count * 2)) / 2
             lower_ci = b / denominator
@@ -192,7 +173,8 @@ class IncPrev():
             lower_ci = lower_o / denominator
             return lower_ci
 
-    def byars_higher(self, count, denominator):
+
+    def byars_higher(self, count: int, denominator: Union[float,int]) -> float:
         if count < 10:
             b = chi2.ppf(1 - (self.ALPHA / 2), 2 * count + 2) / 2
             upper_ci = b / denominator
@@ -205,7 +187,10 @@ class IncPrev():
             upper_ci = upper_o / denominator
             return upper_ci
 
-    def runAnalysis(self, inc=True, prev=True,):
+
+    def runAnalysis(self,
+                    inc: bool = True,
+                    prev: bool = True,) -> tuple[pl.DataFrame, pl.DataFrame]:
         if inc:
             results_inc = self.calculate_overall_inc_prev(is_incidence=True)
         else:
@@ -232,7 +217,6 @@ class IncPrev():
 
         return tuple([results_inc, results_prev])
 
-    #######################################################################
 
     def date_range(
         self,
@@ -395,7 +379,7 @@ class IncPrev():
         d_range: List[datetime],
         col_list: List[str],
         rename: Dict[str, str],
-    ):
+    ) -> pl.LazyFrame:
         query = rule_fn(d_range)
 
         melted_df = (
@@ -409,7 +393,7 @@ class IncPrev():
         )
 
 
-    def filter_data_for_combination(self, data: pl.LazyFrame, condition: List[str], demography: List[str]):
+    def filter_data_for_combination(self, data: pl.LazyFrame, condition: List[str], demography: List[str]) -> pl.LazyFrame:
         if self.verbose:
             print(demography)
             print(condition)
