@@ -33,7 +33,7 @@ def processBatch(batch,
                             col_end_date=col_end_date,
                             col_index_date=col_index_date,
                             date_fmt=date_fmt,
-                            verbose=True,)
+                            verbose=False,)
 
     results_inc = dat_incprev.runAnalysis(inc=True, prev=False)[0]
 
@@ -47,7 +47,7 @@ def processBatch(batch,
                             col_end_date=col_end_date,
                             col_index_date=col_index_date,
                             date_fmt=date_fmt,
-                            verbose=True,)
+                            verbose=False,)
 
     results_prev = dat_incprev.runAnalysis(inc=False, prev=True)[1]
 
