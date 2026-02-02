@@ -113,29 +113,34 @@ if opt == "incprev":
             pool = mp.Pool(processes = N_PROCESSES)
         pool.starmap(processBatch, batches)
 
-        files_out = os.listdir(config['dir_out'])
-        pattern_inc = compile(r'.*inc_[0-9].*')  # Selects elements starting with 'b'
-        pattern_prev = compile(r'.*prev_[0-9].*')  # Selects elements starting with 'b'
+    files_out = os.listdir(config['dir_out'])
+    pattern_inc = compile(r'.*inc_[0-9].*')
+    pattern_prev = compile(r'.*prev_[0-9].*')
 
-        file_names_inc = [x for x in files_out if match(pattern_inc, x)]
-        file_names_prev = [x for x in files_out if match(pattern_prev, x)]
+    file_names_inc = [x for x in files_out if match(pattern_inc, x)]
+    file_names_prev = [x for x in files_out if match(pattern_prev, x)]
 
-        output_file_inc = "out_inc.csv"
-        output_file_prev = "out_prev.csv"
+    output_file_inc = "out_inc.csv"
+    output_file_prev = "out_prev.csv"
 
-        def write_out(file_names, output_file, dir_):
-            with open(f"{dir_}{output_file}", 'w') as outfile:
-                for i, file_name in enumerate(file_names):
-                    with open(f"{dir_}{file_name}", 'r') as infile:
-                    #skip header if not 1st out file
-                        if i!=0:
-                            next(infile)
-                            outfile.write(infile.read())
-                        else:
-                            outfile.write(infile.read())
+    def write_out(file_names, output_file, dir_):
+        with open(f"{dir_}{output_file}", 'w') as outfile:
+            for i, file_name in enumerate(file_names):
+                with open(f"{dir_}{file_name}", 'r') as infile:
+                #skip header if not 1st out file
+                    if i!=0:
+                        next(infile)
+                        outfile.write(infile.read())
+                    else:
+                        outfile.write(infile.read())
 
-        write_out(file_names_inc, output_file_inc, config["dir_out"])
-        write_out(file_names_prev, output_file_prev, config["dir_out"])
+    write_out(file_names_inc, output_file_inc, config["dir_out"])
+    write_out(file_names_prev, output_file_prev, config["dir_out"])
+
+    for file_ in file_names_inc:
+        os.remove(f"{config['dir_out']}{file_}")
+    for file_ in file_names_prev:
+        os.remove(f"{config['dir_out']}{file_}")
 
 
 ## Standardising
