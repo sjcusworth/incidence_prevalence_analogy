@@ -511,10 +511,10 @@ class IncPrev():
         df_overall = df_overall.with_columns(
             ((pl.col("Numerator") / pl.col("Denominator"))*self.PER_PY).alias(col_name),
             pl.struct(["Numerator", "Denominator"])
-            .map_elements(lambda x: self.byars_lower(x["Numerator"], x["Denominator"])*self.PER_PY)
+            .map_elements(lambda x: self.byars_lower(x["Numerator"], x["Denominator"])*self.PER_PY, return_dtype=pl.Float64,)
             .alias("Lower_CI"),
             pl.struct(["Numerator", "Denominator"])
-            .map_elements(lambda x: self.byars_higher(x["Numerator"], x["Denominator"])*self.PER_PY)
+            .map_elements(lambda x: self.byars_higher(x["Numerator"], x["Denominator"])*self.PER_PY, return_dtype=pl.Float64,)
             .alias("Upper_CI"),
         )
 
@@ -620,10 +620,10 @@ class IncPrev():
         df_overall = df_overall.with_columns(
             ((pl.col("Numerator") / pl.col("Denominator"))*self.PER_PY).alias(col_name),
             pl.struct(["Numerator", "Denominator"])
-            .map_elements(lambda x: self.byars_lower(x["Numerator"], x["Denominator"])*self.PER_PY)
+            .map_elements(lambda x: self.byars_lower(x["Numerator"], x["Denominator"])*self.PER_PY, return_dtype=pl.Float64,)
             .alias("Lower_CI"),
             pl.struct(["Numerator", "Denominator"])
-            .map_elements(lambda x: self.byars_higher(x["Numerator"], x["Denominator"])*self.PER_PY)
+            .map_elements(lambda x: self.byars_higher(x["Numerator"], x["Denominator"])*self.PER_PY, return_dtype=pl.Float64,)
             .alias("Upper_CI"),
         )
 
