@@ -10,7 +10,7 @@ dir_main: !!str "main/"
 dir_out: !!str "out/"
 
 processing:
-  filename: !!str "" #raw/unprocessed
+  filename: !!str "example.parquet" #raw/unprocessed
 
   #if linking Gold/Aurum, set filename above to null
   #removing duplicates from Gold
@@ -32,10 +32,12 @@ processing:
   imd_map_file: !!str ".csv"
 
 incprev:
-  filename: !!str "Schizophrenia_Comorbidity_Abstract20251127040913_formNulls.parquet"
+  filename: !!str "dat_processed.parquet"
 
   col_end_date: !!str "END_DATE"
   col_index_date: !!str "INDEX_DATE"
+
+  date_fmt: !!str "%d-%m-%Y"
 
   # The dates below should be same as the value entered in dexter for data extract.
   start_date:
@@ -49,11 +51,11 @@ incprev:
       day: !!int 1
   end_date:
     inc:
-      year: !!int 2023
+      year: !!int 2003
       month: !!int 12
       day: !!int 31
     prev:
-      year: !!int 2023
+      year: !!int 2003
       month: !!int 12
       day: !!int 31
 
@@ -61,23 +63,19 @@ incprev:
   # Note: Each process will load the input data into memory, so is memory intensive
   n_processes: !!int 1
 
-  BD_LIST: null # null if want to automatically use all outcomes
-    #- "BD_MEDI:CPRD_NHL"
-    #- "BD_MEDI:BCELLLYMPHOMAS"
+  BD_LIST: # null if want to automatically use all outcomes
+    - "condition_a"
+    - "condition_b"
 
   batch_size: !!int 1 # how many conditions to process in each paralel process
   INCREMENT_BY_MONTH: !!int 12
   calc_grouped: !!bool True
   DEMOGRAPHY: # edit below, using this format
     #if no DEMOGRAPHY, set as empty list []
-    - 'AGE_CATEGORY'
-    - 'SEX'
-    - 'ETHNICITY'
-    - 'REGION'
-    - ['AGE_CATEGORY', 'SEX']
-    - ['AGE_CATEGORY', 'SEX', 'ETHNICITY']
-    - ['AGE_CATEGORY', 'SEX', 'REGION']
-    - ['AGE_CATEGORY', 'SEX', 'ETHNICITY', 'REGION']
+    - 'pat_catg_a'
+    - 'pat_catg_b'
+    - ["AGE_CATEGORY", "SEX", "pat_catg_a"]
+    - ["AGE_CATEGORY", "SEX", "pat_catg_b"]
 
 strd:
   reference_population: "UK Age-Sex Pop Structure.csv"
@@ -86,7 +84,8 @@ strd:
 
   standard_breakdowns: #overall strd MUST be labelled 'Overall'
     Overall: "AGE_CATEGORY, SEX"
-    Ethnicity: "AGE_CATEGORY, SEX, ETHNICITY"
+    catg_a: "AGE_CATEGORY, SEX, pat_catg_a"
+    catg_b: "AGE_CATEGORY, SEX, pat_catg_b"
 
 censor:
   n: 10
