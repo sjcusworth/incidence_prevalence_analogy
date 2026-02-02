@@ -363,7 +363,7 @@ class IncPrev():
                         pl.col(self.DataKeys["EVENT_DATE_COL"]), d_range[i]
                     )
                     .sub(pl.max_horizontal(pl.col(self.DataKeys["INDEX_DATE_COL"]), d_range[i - 1]))
-                    .dt.days()
+                    .dt.total_days()
                     .cast(pl.Float64)
                     / delta.days
                 )
