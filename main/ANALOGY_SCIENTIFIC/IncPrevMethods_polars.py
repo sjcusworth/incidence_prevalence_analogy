@@ -103,16 +103,18 @@ class IncPrev():
 
         self.raw_data: Optional[pl.DataFrame]
         self.STUDY_END_DATE += relativedelta(years=0, months=0, days=1)
-        if read_data == True:
-            self.read(cols,)
-        else:
-            self.raw_data = None
 
         self.DataKeys = {
                 "INDEX_DATE_COL": col_index_date,
                 "END_DATE_COL": col_end_date,
                 "EVENT_DATE_COL": "EVENT_DATE",
                 }
+
+        if read_data == True:
+            self.read(cols,)
+        else:
+            self.raw_data = None
+
         self.StudyDesignKeys = {
                 "SMALL_FP_VAL": 1e-8,
                 }
@@ -137,8 +139,8 @@ class IncPrev():
         self.raw_data = (
             self.raw_data
             .with_columns(
-                pl.col([self.DataKeys["INDEX_DATE"],
-                    self.DataKeys["END_DATE"],]).str.strptime(pl.Date, format=self.date_fmt,)
+                pl.col([self.DataKeys["INDEX_DATE_COL"],
+                    self.DataKeys["END_DATE_COL"],]).str.strptime(pl.Date, format=self.date_fmt,)
             )
         )
 
