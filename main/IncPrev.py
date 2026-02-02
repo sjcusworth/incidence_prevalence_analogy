@@ -15,7 +15,7 @@ def processBatch(batch,
             for sublist in DEMOGRAPHY for item in sublist]))
 
     if isinstance(batch, str):
-        cols = ['INDEX_DATE', 'END_DATE',].append(batch)
+        cols = ['INDEX_DATE', 'END_DATE',] + [batch]
     else:
         batch = list(batch)
         cols = ['INDEX_DATE', 'END_DATE',] + list(batch)
