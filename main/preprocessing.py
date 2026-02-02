@@ -32,7 +32,7 @@ def preprocessing(
 
     if config_preproc["filename"] is None:
         filesToFormat = [f"{dir_data}{config_preproc['filename_gold']}",
-                         f"{dir_data}{config_preproc['processing']['filename_aurum']}"]
+                         f"{dir_data}{config_preproc['filename_aurum']}"]
         if config_preproc["filename_gold"][-3:] == "csv":
             config_preproc['filename_gold'] = f"{config_preproc['filename_gold'][:-4]}_formNulls.parquet"
             config_preproc['filename_aurum'] = f"{config_preproc['filename_aurum'][:-4]}_formNulls.parquet"
