@@ -33,15 +33,34 @@ def preprocessing(
     if config_preproc["filename"] is None:
         filesToFormat = [f"{dir_data}{config_preproc['filename_gold']}",
                          f"{dir_data}{config_preproc['processing']['filename_aurum']}"]
-        config_preproc['filename_gold'] = f"{config_preproc['filename_gold'][:-4]}_formNulls.parquet"
-        config_preproc['filename_aurum'] = f"{config_preproc['filename_aurum'][:-4]}_formNulls.parquet"
+        if config_preproc["filename_gold"][-3:] == "csv":
+            config_preproc['filename_gold'] = f"{config_preproc['filename_gold'][:-4]}_formNulls.parquet"
+            config_preproc['filename_aurum'] = f"{config_preproc['filename_aurum'][:-4]}_formNulls.parquet"
+        elif config_preproc["filename_gold"][-7:] == "parquet":
+            config_preproc['filename_gold'] = f"{config_preproc['filename_gold'][:-8]}_formNulls.parquet"
+            config_preproc['filename_aurum'] = f"{config_preproc['filename_aurum'][:-8]}_formNulls.parquet"
+        else:
+            raise Exception("File type not recognised")
     else:
         filesToFormat = [f"{dir_data}{config_preproc['filename']}"]
-        config_preproc["filename"] = filesToFormat[0]
+        if filesToFormat[0][-3:] == "csv":
+            config_preproc["filename"] = f"{filesToFormat[0][:-4]}_formNulls.parquet"
+        elif filesToFormat[0][-7:] == "parquet":
+            config_preproc["filename"] = f"{filesToFormat[0][:-8]}_formNulls.parquet"
+        else:
+            raise Exception("File type not recognised")
 
     for file_ in filesToFormat:
+        if file_[-3:] == "csv":
+            dat = pl.scan_csv(file_, infer_schema_length=0)
+            file_root_ = file_[:-4]
+        if file_[-7:] == "parquet":
+            dat = pl.scan_parquet(file_)
+            file_root_ = file_[:-8]
+        else:
+            raise Exception("File type not recognised")
         dat = (
-                pl.scan_csv(file_, infer_schema_length=0)
+                dat
                 .with_columns(
                     pl.when(pl.all().str.len_chars() == 0)
                         .then(None)
@@ -49,7 +68,7 @@ def preprocessing(
                         .name.keep()
                     )
                 )
-        dat.sink_parquet(f"{file_[:-4]}_formNulls.parquet")
+        dat.sink_parquet(f"{file_root_}_formNulls.parquet")
     logger.info("    Formatting null values finished")
     del dat
 
@@ -153,4 +172,4 @@ def preprocessing(
         outFile="dat_processed.parquet"
         logger.info("    Linking IMD finished")
 
-    os.rename(outFile, "dat_processed.parquet")
+    os.rename(outFile, f"{dir_data}dat_processed.parquet")
