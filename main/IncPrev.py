@@ -7,6 +7,8 @@ def processBatch(batch,
                  DEMOGRAPHY,
                  col_end_date,
                  col_index_date,
+                 date_fmt,
+                 dir_out,
                  batchId,) -> None:
     #Get unique categories
     CATGS = list(set([sublist if isinstance(sublist, str) else item \
@@ -30,6 +32,7 @@ def processBatch(batch,
                             cols,
                             col_end_date=col_end_date,
                             col_index_date=col_index_date,
+                            date_fmt=date_fmt,
                             verbose=True,)
 
     results_inc = dat_incprev.runAnalysis(inc=True, prev=False)[0]
@@ -41,6 +44,9 @@ def processBatch(batch,
                             batch,
                             DEMOGRAPHY,
                             cols,
+                            col_end_date=col_end_date,
+                            col_index_date=col_index_date,
+                            date_fmt=date_fmt,
                             verbose=True,)
 
     results_prev = dat_incprev.runAnalysis(inc=False, prev=True)[1]
@@ -52,6 +58,6 @@ def processBatch(batch,
             metric = "prev"
         else:
             metric = "inc"
-        result_.write_csv(f"{DIR_OUT}out_{metric}_{batchId}.csv")
+        result_.write_csv(f"{dir_out}out_{metric}_{batchId}.csv")
 
     # grouped incprev options

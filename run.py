@@ -84,6 +84,8 @@ if opt == "incprev":
                    conf_incprev["DEMOGRAPHY"],
                    conf_incprev["col_end_date"],
                    conf_incprev["col_index_date"],
+                   conf_incprev["date_fmt"],
+                   config["dir_out"],
                    0,
             )
     else:
@@ -98,6 +100,8 @@ if opt == "incprev":
             repeat(conf_incprev["DEMOGRAPHY"]),
             conf_incprev["col_end_date"],
             conf_incprev["col_index_date"],
+            repeat(conf_incprev["date_fmt"]),
+            repeat(config["dir_out"]),
             list(range(0, len(BASELINE_DATE_LIST))),#batchId
         ))
 
