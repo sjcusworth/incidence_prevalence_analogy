@@ -98,8 +98,8 @@ if opt == "incprev":
             repeat(STUDY_END_DATE),
             repeat(FILENAME),
             repeat(conf_incprev["DEMOGRAPHY"]),
-            conf_incprev["col_end_date"],
-            conf_incprev["col_index_date"],
+            repeat(conf_incprev["col_end_date"]),
+            repeat(conf_incprev["col_index_date"]),
             repeat(conf_incprev["date_fmt"]),
             repeat(config["dir_out"]),
             list(range(0, len(BASELINE_DATE_LIST))),#batchId
