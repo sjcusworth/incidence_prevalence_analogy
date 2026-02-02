@@ -2,7 +2,6 @@ from typing import Optional, Union
 from datetime import date, datetime
 from typing import List, Dict, Callable
 import numpy as np
-from tqdm import tqdm
 from scipy.stats import chi2
 from scipy.special import ndtri
 from dateutil.relativedelta import relativedelta
