@@ -121,8 +121,8 @@ class StrdIncPrev():
 #            df_year = self.split_subgroup_strings(df_year)
             df_year = df_year[df_year[self.group_col]!='Ireland'] #Ireland is not part of IMD
 #            dict_years[i] = df_year.groupby([self.group_col]).apply(self.standardise_year, measure)
-            dict_years[f"{i}_UpperCI"], dict_years[i] = self.dobsons_ci(df_year, True, measure, return_DSR=True)
-            dict_years[f"{i}_LowerCI"] = self.dobsons_ci(df_year, False, measure)
+            dict_years[f"{i}_Upper_CI"], dict_years[i] = self.dobsons_ci(df_year, True, measure, return_DSR=True)
+            dict_years[f"{i}_Lower_CI"] = self.dobsons_ci(df_year, False, measure)
 
         return dict_years
 
@@ -134,8 +134,8 @@ class StrdIncPrev():
             df_year["std_group"] = df_year["std_group"].apply(lambda x, rep1, rep2: x.replace(rep1, rep2), args=tuple(["(", ""]))
             df_year["std_group"] = df_year["std_group"].apply(lambda x, rep1, rep2: x.replace(rep1, rep2), args=tuple([")", ""]))
             #dict_years[i] = self.standardise_year(df_year, measure)
-            dict_years[f"{i}_UpperCI"], dict_years[i] = self.dobsons_ci(df_year, True, measure, False, return_DSR=True)
-            dict_years[f"{i}_LowerCI"] = self.dobsons_ci(df_year, False, measure, False)
+            dict_years[f"{i}_Upper_CI"], dict_years[i] = self.dobsons_ci(df_year, True, measure, False, return_DSR=True)
+            dict_years[f"{i}_Lower_CI"] = self.dobsons_ci(df_year, False, measure, False)
 
         return dict_years
 
@@ -185,15 +185,15 @@ class StrdIncPrev():
             dates = [re.sub("(.*[:0-9:]).*","\\1",x) for x in list(dat.variable)]
 
             dat.variable = cols
-            dat["Year"] = dates
+            dat["Date"] = dates
 
-            dat = dat.pivot_table(columns="variable", values="value", index=[self.condition_col, "Year", self.category_col, self.group_col])
+            dat = dat.pivot_table(columns="variable", values="value", index=[self.condition_col, "Date", self.category_col, self.group_col])
 
             return dat
 
         df_all_rates = reformat(df_all_rates, measure)
 
-        df_all_rates = df_all_rates.reset_index(level=["Group", "Year"])
+        df_all_rates = df_all_rates.reset_index(level=["Group", "Date"])
 
         return df_all_rates
 

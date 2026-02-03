@@ -25,7 +25,6 @@ def small_num_censor(
     for path_dat_, path_output_ in ((f"{dir_out}prev_crude.csv",output_file_prev), (f"{dir_out}/inc_crude.csv",output_file_inc)):
         dat = (
                 pl.read_csv(path_dat_, infer_schema_length=0,)
-                .rename({"Date":"Year", "Upper_CI": "UpperCI", "Lower_CI":"LowerCI",})
                 .with_columns(
                     pl.col("Condition").str.replace_all("_|:|BD_MEDI", "")
                     )
@@ -34,15 +33,15 @@ def small_num_censor(
 
     ### Censor small counts ######################################################
 
-    def getCrudeMap(filePath,):
+    def getCrudeMap(filePath,) -> pl.DataFrame:
         dat_ = (
                 pl.read_csv(filePath, infer_schema_length=0,)
                 .with_columns(
                     pl.col("Numerator").cast(pl.Int64)
                     )
-                .select(pl.col(["Subgroup", "Year", "Condition", "Numerator", "Group",]))
+                .select(pl.col(["Subgroup", "Date", "Condition", "Numerator", "Group",]))
                 .with_columns(
-                    pl.col("Subgroup").apply(lambda x: "'" + "', '".join(["".join([char for char in label.strip() if char not in ["'", "(", ")", '"']]) for label in x.split(",")[2:]]) + "'"),
+                    pl.col("Subgroup").map_elements(lambda x: "'" + "', '".join(["".join([char for char in label.strip() if char not in ["'", "(", ")", '"']]) for label in x.split(",")[2:]]) + "'"),
                     )
                 .filter(pl.col("Subgroup")!="''")
                 .filter(pl.col("Group").str.starts_with("AGE_CATEGORY, SEX"))
@@ -53,14 +52,14 @@ def small_num_censor(
                 )
         dat_ = (
                 dat_
-                .groupby(pl.col(["Subgroup", "Year", "Condition"])).sum()
+                .group_by(pl.col(["Subgroup", "Date", "Condition"])).sum()
                 )
         dat_check = (
                 pl.read_csv(filePath, infer_schema_length=0,)
                 .with_columns(
                     pl.col("Numerator").cast(pl.Int64)
                     )
-                .select(pl.col(["Subgroup", "Year", "Condition", "Numerator", "Group",]))
+                .select(pl.col(["Subgroup", "Date", "Condition", "Numerator", "Group",]))
                 .filter(pl.col("Group")=="ETHNICITY")
                 .with_columns(
                     pl.col("Subgroup").str.replace_all("'", "")
@@ -71,7 +70,7 @@ def small_num_censor(
                 dat_check
                 .join(
                     dat_,
-                    on=["Subgroup", "Year", "Condition"],
+                    on=["Subgroup", "Date", "Condition"],
                     how="left",
                     )
                 )
@@ -79,7 +78,7 @@ def small_num_censor(
             raise ValueError("Mapping file not got correct values")
         dat_overall_ = (
                 pl.read_csv(filePath, infer_schema_length=0,)
-                .select(pl.col(["Group", "Year", "Condition", "Numerator",]))
+                .select(pl.col(["Group", "Date", "Condition", "Numerator",]))
                 .filter(pl.col("Group")=="Overall")
                 .rename({"Group": "Subgroup"})
                 .with_columns(
@@ -101,7 +100,7 @@ def small_num_censor(
             dat_dsr_inc
             .join(
                 dat_crude_inc,
-                on=["Subgroup", "Year", "Condition"],
+                on=["Subgroup", "Date", "Condition"],
                 how="left",
                 )
             )
@@ -111,7 +110,7 @@ def small_num_censor(
             dat_dsr_prev
             .join(
                 dat_crude_prev,
-                on=["Subgroup", "Year", "Condition"],
+                on=["Subgroup", "Date", "Condition"],
                 how="left",
                 )
             )
@@ -123,7 +122,7 @@ def small_num_censor(
 
 
     ## Setting small counts and corresponding incprev to null
-    def smallCountsCens(path_dat, cols, metric=None, upperCI="UpperCI", lowerCI="LowerCI"):
+    def smallCountsCens(path_dat, cols, metric=None, upperCI="Upper_CI", lowerCI="Lower_CI") -> None:
         dat = pl.read_csv(path_dat, infer_schema_length=0,)
         dat = (
                 dat
@@ -139,7 +138,7 @@ def small_num_censor(
                        pl.col(col_).fill_null(0) #will be set to null at next line; needed for compatibility with apply
                        )
                    .with_columns(
-                       pl.col(col_).apply(lambda x: False if isinstance(x, pl.Null) or x <= n else True).alias("censor")
+                       pl.col(col_).map_elements(lambda x: False if isinstance(x, pl.Null) or x <= n else True).alias("censor")
                        )
                    .get_column("censor")
                     )
