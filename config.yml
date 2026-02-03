@@ -8,6 +8,8 @@
 dir_data: !!str "data/"
 dir_out: !!str "out/"
 
+date_fmt: !!str "%d-%m-%Y"
+
 processing:
   filename: !!str "example.parquet" #raw/unprocessed
 
@@ -21,6 +23,7 @@ processing:
 
   mergeCols_AtoB: null
     #  ...: ...
+  rm_old_cols: True
 
   combineLevels: null
     #HEALTH_AUTH:
@@ -35,8 +38,6 @@ incprev:
 
   col_end_date: !!str "END_DATE"
   col_index_date: !!str "INDEX_DATE"
-
-  date_fmt: !!str "%d-%m-%Y"
 
   # The dates below should be same as the value entered in dexter for data extract.
   start_date:

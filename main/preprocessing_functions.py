@@ -323,6 +323,8 @@ def mergeCols(
         file_type = "parquet",
         logger=None,
         outFile="condMerged.parquet",
+        date_fmt="%Y-%m-%d",
+        rm_old_cols=True,
         ):
     """
     NOTE: outFile cannot be condMerged_temp.parquet or condMerged_newCol.parquet
@@ -347,7 +349,7 @@ def mergeCols(
                         col(["PRACTICE_PATIENT_ID"] + merge_cols)
                         )
                     .with_columns(
-                        col(merge_cols).str.strptime(plDate, "%Y-%m-%d"),
+                        col(merge_cols).str.strptime(plDate, date_fmt),
                         plmin_horizontal(merge_cols).alias(out_col)
                     )
                     .select(
@@ -356,20 +358,31 @@ def mergeCols(
                     .collect()
                     .write_parquet(f"{path_dat}condMerged_newCol.parquet")
                 )
-                (
-                    q1
-                    .select(
-                        col("*").exclude(merge_cols)
+                if rm_old_cols:
+                    (
+                        q1
+                        .select(
+                            col("*").exclude(merge_cols)
+                            )
+                        .join(
+                            scan_parquet(f"{path_dat}condMerged_newCol.parquet"),
+                            on = "PRACTICE_PATIENT_ID",
+                            how = "left",
+                            )
+                        .sink_parquet(f"{path_dat}condMerged_temp.parquet",)
+                    )
+                else:
+                    (
+                        q1
+                        .join(
+                            scan_parquet(f"{path_dat}condMerged_newCol.parquet"),
+                            on = "PRACTICE_PATIENT_ID",
+                            how = "left",
+                            )
+                        .sink_parquet(f"{path_dat}condMerged_temp.parquet",)
                         )
-                    .join(
-                        scan_parquet(f"{path_dat}condMerged_newCol.parquet"),
-                        on = "PRACTICE_PATIENT_ID",
-                        how = "left",
-                        )
-                    .sink_parquet(f"{path_dat}condMerged_temp.parquet",)
-
-                )
                 del q1
+                gc.collect()
                 rename(f"{path_dat}condMerged_temp.parquet",
                        f"{path_dat}{outFile}",)
                 remove(f"{path_dat}condMerged_newCol.parquet")
@@ -377,6 +390,7 @@ def mergeCols(
                 q1 = scan_parquet(f"{path_dat}condMerged.parquet")#, infer_schema_length=0)
             else:
                 del dict_merge[out_col] #prevents deleting of unmerged cols
+                gc.collect()
 
     else:
         for out_col, merge_cols in dict_merge.copy().items():
@@ -384,20 +398,27 @@ def mergeCols(
                 q1 = (
                     q1
                     .with_columns(
-                        col(merge_cols).str.strptime(plDate, "%Y-%m-%d"),
+                        col(merge_cols).str.strptime(plDate, date_fmt),
                         plmin_horizontal(merge_cols).alias(out_col)
                     )
                 )
             else:
                 del dict_merge[out_col] #prevents deleting of unmerged cols
+                gc.collect()
 
         rm_cols = list(dict_merge.values())
         rm_cols = [x for sublist in rm_cols for x in sublist]
-        q1 = (
-            q1
-            .select(col("*").exclude(rm_cols))
-            .collect().write_parquet(f"{path_dat}{outFile}")
-        )
+        if rm_old_cols:
+            q1 = (
+                q1
+                .select(col("*").exclude(rm_cols))
+                .collect().write_parquet(f"{path_dat}{outFile}")
+            )
+        else:
+            q1 = (
+                q1
+                .collect().write_parquet(f"{path_dat}{outFile}")
+            )
         q1
     return "finished merging"
 

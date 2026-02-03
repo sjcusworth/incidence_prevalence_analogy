@@ -14,6 +14,7 @@ from main.preprocessing_functions import process_imd, rmDup, mergeCols, combineL
 def preprocessing(
         dir_data: str,
         config_preproc: dict,
+        date_fmt: str = "%Y-%m-%d",
         path_log: str = "log_sBatch_1Python.txt"
         ) -> None:
     ## Log
@@ -115,6 +116,8 @@ def preprocessing(
                 low_memory = False,
                 logger=logger,
                 outFile="condMerged.parquet",
+                date_fmt=date_fmt,
+                rm_old_cols=config_preproc["rm_old_cols"],
                 )
         if flag_temp_file:
             os.remove(outFile)
