@@ -58,13 +58,13 @@ if opt == "incprev":
 
     #get condition date columns
     if conf_incprev["BD_LIST"] is None:
-        if conf_incprev["is_parquet"]:
+        if FILENAME[-7:] == "parquet":
             dataset = ds.dataset(FILENAME, format="parquet")
             col_head = dataset.head(1).to_pylist()[0].keys()
             del dataset
             BASELINE_DATE_LIST = [col for col in col_head if col.startswith('BD_')]
             del col_head
-        else:
+        elif FILENAME[-3:] == "csv":
             with open(FILENAME,
                       "r",
                       encoding="utf8") as f:
@@ -72,6 +72,8 @@ if opt == "incprev":
                 col_head = next(reader)
             BASELINE_DATE_LIST = [col for col in col_head if col.startswith('BD_')]
             del col_head
+        else:
+            raise Exception("Cannot determine file type")
     else:
         BASELINE_DATE_LIST = conf_incprev["BD_LIST"]
 
