@@ -6,7 +6,6 @@ from math import ceil, floor
 from os import getcwd, listdir, mkdir, rename, scandir
 from os.path import isdir
 from re import search, sub
-from tqdm import tqdm
 from numpy import isnan as npisnan
 from numpy import vectorize as npvectorize
 from seaborn import husl_palette
