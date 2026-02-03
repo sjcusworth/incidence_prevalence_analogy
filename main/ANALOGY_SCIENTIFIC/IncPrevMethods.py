@@ -1,14 +1,9 @@
 import re
-import warnings
 import pandas as pd
 import numpy as np
-import datetime
-import matplotlib.pyplot as plt
-import seaborn as sns
 from scipy.stats import chi2
 from scipy.special import ndtri
 from dateutil.relativedelta import relativedelta
-from csv import DictReader
 from math import sqrt
 
 class StrdIncPrev():
