@@ -6,7 +6,6 @@
 #   |_ out/
 
 dir_data: !!str "data/"
-dir_main: !!str "main/"
 dir_out: !!str "out/"
 
 processing:
