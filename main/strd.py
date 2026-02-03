@@ -40,11 +40,11 @@ def standardise_incprev(
             "Upper_CI": "float64",
             }
 
-    incprev.raw_data_inc = read_csv(f"{dir_out}out_inc.csv", dtype=column_dtypes,)
+    incprev.raw_data_inc = read_csv(f"{dir_out}inc_crude.csv", dtype=column_dtypes,)
     incprev.raw_data_inc["Incidence"] = incprev.raw_data_inc["Incidence"].fillna(0)
     incprev.raw_data_inc["Upper_CI"] = incprev.raw_data_inc["Upper_CI"].apply(lambda x: x if x!=np.inf else 0)#np.NaN)
 
-    incprev.raw_data_prev = read_csv(f"{dir_out}out_prev.csv", dtype=column_dtypes,)
+    incprev.raw_data_prev = read_csv(f"{dir_out}prev_crude.csv", dtype=column_dtypes,)
     incprev.raw_data_prev["Prevalence"] = incprev.raw_data_prev["Prevalence"].fillna(0)
     incprev.raw_data_prev["Upper_CI"] = incprev.raw_data_prev["Upper_CI"].apply(lambda x: x if x!=np.inf else 0)#np.NaN)
 

@@ -122,8 +122,8 @@ if opt == "incprev":
     file_names_inc = [x for x in files_out if match(pattern_inc, x)]
     file_names_prev = [x for x in files_out if match(pattern_prev, x)]
 
-    output_file_inc = "out_inc.csv"
-    output_file_prev = "out_prev.csv"
+    output_file_inc = "inc_crude.csv"
+    output_file_prev = "prev_crude.csv"
 
     def write_out(file_names, output_file, dir_):
         with open(f"{dir_}{output_file}", 'w') as outfile:

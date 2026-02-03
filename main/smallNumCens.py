@@ -22,7 +22,7 @@ def small_num_censor(
     output_file_inc = f"{dir_out}{dir_cens}inc_crude.csv"
     output_file_prev = f"{dir_out}{dir_cens}prev_crude.csv"
 
-    for path_dat_, path_output_ in ((f"{dir_out}out_prev.csv",output_file_prev), (f"{dir_out}/out_inc.csv",output_file_inc)):
+    for path_dat_, path_output_ in ((f"{dir_out}prev_crude.csv",output_file_prev), (f"{dir_out}/inc_crude.csv",output_file_inc)):
         dat = (
                 pl.read_csv(path_dat_, infer_schema_length=0,)
                 .rename({"Date":"Year", "Upper_CI": "UpperCI", "Lower_CI":"LowerCI",})
