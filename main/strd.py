@@ -80,6 +80,6 @@ def standardise_incprev(
     prev = incprev.standardise_all_conditions()
     inc = incprev.standardise_all_conditions(measure="Incidence")
 
-    inc.to_csv(f"{dir_data}inc_DSR.csv")
-    prev.to_csv(f"{dir_data}prev_DSR.csv")
+    inc.to_csv(f"{dir_out}inc_DSR.csv")
+    prev.to_csv(f"{dir_out}prev_DSR.csv")
 
