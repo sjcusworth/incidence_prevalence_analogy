@@ -1,3 +1,4 @@
+from typing import Union
 import re
 import pandas as pd
 import numpy as np
@@ -16,6 +17,8 @@ class StrdIncPrev():
             col_condition: str = "Condition",
             col_category: str = "Group",
             col_group: str = "Subgroup",
+            alpha: float = 0.05,
+            per_py: Union[float,int] = 100_000,
             ):
         self.standard_breakdowns = standard_breakdowns
 
@@ -25,6 +28,9 @@ class StrdIncPrev():
 
         self.raw_data_prev = None
         self.raw_data_inc = None
+
+        self.ALPHA = alpha
+        self.PER_PY = per_py
 
 
     def getReference(self,
