@@ -54,7 +54,7 @@ def preprocessing(
         if file_[-3:] == "csv":
             dat = pl.scan_csv(file_, infer_schema_length=0)
             file_root_ = file_[:-4]
-        if file_[-7:] == "parquet":
+        elif file_[-7:] == "parquet":
             dat = pl.scan_parquet(file_)
             file_root_ = file_[:-8]
         else:
@@ -172,4 +172,4 @@ def preprocessing(
         outFile="dat_processed.parquet"
         logger.info("    Linking IMD finished")
 
-    os.rename(outFile, f"{dir_data}dat_processed.parquet")
+    os.rename(f"{dir_data}{outFile}", f"{dir_data}dat_processed.parquet")
