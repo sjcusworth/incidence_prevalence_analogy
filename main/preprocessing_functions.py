@@ -468,17 +468,20 @@ def link_hes(path_dat: str,
              path_out: str,
              low_memory: bool = False,
              ):
+    """
+    For date cols in parquet, read as string
+    """
     if path_dat.endswith("csv"):
         dat = scan_csv(path_dat, infer_schema_length=0,)
     elif path_dat.endswith("parquet"):
-        dat = scan_parquet(path_dat,).with_columns(plall().cast(plUtf8))
+        dat = scan_parquet(path_dat,).with_columns(col(plDate).cast(plUtf8))
     else:
         raise Exception("Cannot determine file type")
 
     if path_hes.endswith("csv"):
         dat_hes = scan_csv(path_hes, infer_schema_length=0,)
     elif path_hes.endswith("parquet"):
-        dat_hes = scan_parquet(path_hes,).with_columns(plall().cast(plUtf8))
+        dat_hes = scan_parquet(path_hes,).with_columns(col(plDate).cast(plUtf8))
     else:
         raise Exception("Cannot determine file type")
 
