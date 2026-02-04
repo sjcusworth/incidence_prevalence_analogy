@@ -20,7 +20,7 @@ def preprocessing(
         ) -> None:
     ## Log
     logging.basicConfig(filename=path_log,
-                        filemode='a',
+                        filemode='w',
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
                         level=logging.DEBUG)
@@ -102,6 +102,7 @@ def preprocessing(
             outFile=outFile,
             )
         logger.info("    Linking finished")
+        flag_temp_file = True
     else:
         outFile = config_preproc["filename"]
 
@@ -118,7 +119,7 @@ def preprocessing(
                 f"{dir_data}dat_hesLinked.parquet",
                 )
         if flag_temp_file:
-            os.remove(outFile)
+            os.remove(f"{dir_data}{outFile}")
         else:
             flag_temp_file = True
         outFile = "dat_hesLinked.parquet"
@@ -149,7 +150,7 @@ def preprocessing(
                 rm_old_cols=config_preproc["rm_old_cols"],
                 )
         if flag_temp_file:
-            os.remove(outFile)
+            os.remove(f"{dir_data}{outFile}")
         else:
             flag_temp_file = True
         outFile = "condMerged.parquet"
@@ -172,7 +173,7 @@ def preprocessing(
                       outFile="dat_updatedLevels.parquet",
                       )
         if flag_temp_file:
-            os.remove(outFile)
+            os.remove(f"{dir_data}{outFile}")
         else:
             flag_temp_file = True
         outFile = "dat_updatedLevels.parquet"
@@ -198,7 +199,7 @@ def preprocessing(
                 outFile="dat_processed.parquet",
                 )
         if flag_temp_file:
-            os.remove(outFile)
+            os.remove(f"{dir_data}{outFile}")
         else:
             flag_temp_file = True
         outFile="dat_processed.parquet"
