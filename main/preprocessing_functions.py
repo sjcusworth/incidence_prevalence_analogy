@@ -10,6 +10,7 @@ from polars import Categorical as plCategorical
 from polars import Date as plDate
 from polars import when as plwhen
 from polars import all as plall
+from polars import lit as pllit
 import gc
 import pyarrow.dataset as ds
 from pyarrow.csv import CSVWriter
@@ -255,7 +256,6 @@ def process_imd(
         )
     )
 
-    # calculating imd is now the purpose of this function (no conditional)
     for imd_type in imd_dict.keys():
         if imd_type == "IMD_patid":
             lab_col = "PATIENT_ID"
@@ -272,7 +272,9 @@ def process_imd(
         q1 = (
             q1
             .with_columns(
-                col(lab_col).map_dict(map_imd).alias(imd_type)
+                col(lab_col).replace_strict(map_imd,
+                                            default=pllit(None),
+                                            return_dtype=plUtf8).alias(imd_type)
                 )
             )
     q1 = (
@@ -288,31 +290,24 @@ def process_imd(
     file_1 = f"{path_dir}{file_dat}"
     file_2 = f"{path_dir}dat_imd.parquet"
 
-    toAdd = (
-        scan_parquet(file_2, low_memory=low_memory,)
-        .with_columns(col("*").cast(plUtf8))
-    )
+    toAdd = scan_parquet(file_2, low_memory=low_memory,)
 
     if is_parquet:
-        Combine = (
-            scan_parquet(file_1,
-                     low_memory=low_memory,)
-            .with_columns(col("*").cast(plUtf8))
-        )
+        combine = scan_parquet(file_1, low_memory=low_memory,)
     else:
-        Combine = (
+        combine = (
             scan_csv(file_1,
                      infer_schema_length=0,
                      low_memory=low_memory,)
         )
-    Combine = (
-        Combine
+    combine = (
+        combine
         .join(toAdd, on=joinCol, how="left") #how="left" supports .sink_parquet and should be same as outer
     )
     if low_memory:
-        Combine.sink_parquet(f"{path_dir}{outFile}")
+        combine.sink_parquet(f"{path_dir}{outFile}")
     else:
-        Combine.collect().write_parquet(f"{path_dir}{outFile}")
+        combine.collect().write_parquet(f"{path_dir}{outFile}")
 
 
 
@@ -344,13 +339,19 @@ def mergeCols(
                 logger.info(out_col)
 
             if len(merge_cols) > 1:
-                (
+
+                # ensure str cols already cast to Date not cast again due to rm_cols True
+                q1_schema = q1.collect_schema()
+                for v_ in merge_cols:
+                    if q1_schema[v_] == plUtf8:
+                        q1 = q1.with_columns(col(v_).str.strptime(plDate, date_fmt))
+
+                q1 = (
                     q1
                     .select(
                         col(["PRACTICE_PATIENT_ID"] + merge_cols)
                         )
                     .with_columns(
-                        col(merge_cols).str.strptime(plDate, date_fmt),
                         plmin_horizontal(merge_cols).alias(out_col)
                     )
                     .select(
@@ -359,8 +360,9 @@ def mergeCols(
                     .collect()
                     .write_parquet(f"{path_dat}condMerged_newCol.parquet")
                 )
+                q1
                 if rm_old_cols:
-                    (
+                    q1 = (
                         q1
                         .select(
                             col("*").exclude(merge_cols)
@@ -372,8 +374,9 @@ def mergeCols(
                             )
                         .sink_parquet(f"{path_dat}condMerged_temp.parquet",)
                     )
+                    q1
                 else:
-                    (
+                    q1 = (
                         q1
                         .join(
                             scan_parquet(f"{path_dat}condMerged_newCol.parquet"),
@@ -382,6 +385,7 @@ def mergeCols(
                             )
                         .sink_parquet(f"{path_dat}condMerged_temp.parquet",)
                         )
+                    q1
                 del q1
                 gc.collect()
                 rename(f"{path_dat}condMerged_temp.parquet",
@@ -396,10 +400,16 @@ def mergeCols(
     else:
         for out_col, merge_cols in dict_merge.copy().items():
             if len(merge_cols) > 1:
+
+                # ensure str cols already cast to Date not cast again due to rm_cols True
+                q1_schema = q1.collect_schema()
+                for v_ in merge_cols:
+                    if q1_schema[v_] == plUtf8:
+                        q1 = q1.with_columns(col(v_).str.strptime(plDate, date_fmt))
+
                 q1 = (
                     q1
                     .with_columns(
-                        col(merge_cols).str.strptime(plDate, date_fmt),
                         plmin_horizontal(merge_cols).alias(out_col)
                     )
                 )
@@ -432,8 +442,6 @@ def combineLevels(
         ):
     if file_type == "parquet":
         q1 = scan_parquet(f"{path_dat}{file_dat}")#, infer_schema_length=0)
-        q1 = (q1
-              .cast(plUtf8))
     else:
         q1 = scan_csv(f"{path_dat}{file_dat}", infer_schema_length=0)
 
@@ -442,8 +450,11 @@ def combineLevels(
             q1 = (
                     q1
                     .with_columns(
+                        col(col_lab).cast(plUtf8)
+                        )
+                    .with_columns(
                         (plwhen(col(col_lab).is_in(combo))
-                        .then(newLabel)
+                        .then(pllit(newLabel))
                         .otherwise(col(col_lab)))
                         .alias(col_lab)
                         )
