@@ -21,6 +21,7 @@ if opt == "process":
     preprocessing(
             config["dir_data"],
             config["processing"],
+            date_fmt=config["date_fmt"],
             )
 
 
@@ -86,7 +87,7 @@ if opt == "incprev":
                    conf_incprev["DEMOGRAPHY"],
                    conf_incprev["col_end_date"],
                    conf_incprev["col_index_date"],
-                   conf_incprev["date_fmt"],
+                   config["date_fmt"],
                    config["dir_out"],
                    0,
             )
@@ -102,7 +103,7 @@ if opt == "incprev":
             repeat(conf_incprev["DEMOGRAPHY"]),
             repeat(conf_incprev["col_end_date"]),
             repeat(conf_incprev["col_index_date"]),
-            repeat(conf_incprev["date_fmt"]),
+            repeat(config["date_fmt"]),
             repeat(config["dir_out"]),
             list(range(0, len(BASELINE_DATE_LIST))),#batchId
         ))
