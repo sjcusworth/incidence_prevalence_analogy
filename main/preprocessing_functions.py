@@ -460,5 +460,39 @@ def par_to_csv(file_noExtension):
     print("Finished")
 
 
+def link_hes(path_dat: str,
+             path_hes: str,
+             dat_linkCol: str,
+             hes_linkCol: str,
+             path_out: str,
+             low_memory: bool = False,
+             ):
+    if path_dat.endswith("csv"):
+        dat = scan_csv(path_dat, infer_schema_length=0,)
+    elif path_dat.endswith("parquet"):
+        dat = scan_parquet(path_dat,)
+    else:
+        raise Exception("Cannot determine file type")
 
+    if path_hes.endswith("csv"):
+        dat_hes = scan_csv(path_hes, infer_schema_length=0,)
+    elif path_hes.endswith("parquet"):
+        dat_hes = scan_parquet(path_hes,)
+    else:
+        raise Exception("Cannot determine file type")
 
+    query = (
+            dat
+            .join(
+                # for conditions with all dates of diagnosis, take earliest
+                dat_hes,
+                left_on=dat_linkCol,
+                right_on=hes_linkCol,
+                how="left",
+                validate='1:1',
+                )
+            )
+    if low_memory:
+        query.sink_parquet(path_out)
+    else:
+        query.collect().write_parquet(path_out)

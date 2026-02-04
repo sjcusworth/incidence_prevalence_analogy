@@ -20,6 +20,9 @@ processing:
   map_file_AtoB: !!str "VisionToEmisMigrators.txt"
   map_delim_AtoB: !!str "\t"
 
+  path_hes: null
+  col_patid_cprd: "PATIENT_ID"
+  col_patid_hes: "patid"
 
   mergeCols_AtoB: null
     #  ...: ...

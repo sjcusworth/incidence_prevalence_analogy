@@ -9,7 +9,7 @@ import yaml
 
 import polars as pl
 import pyarrow.dataset as ds
-from main.preprocessing_functions import process_imd, rmDup, mergeCols, combineLevels
+from main.preprocessing_functions import process_imd, rmDup, mergeCols, combineLevels, link_hes
 
 def preprocessing(
         dir_data: str,
@@ -97,6 +97,28 @@ def preprocessing(
         logger.info("    Linking finished")
     else:
         outFile = config_preproc["filename"]
+
+    ###LinkHes#####################################################################
+    if config_preproc["path_hes"] is not None:
+        print("Linking Hes")
+        logger.info("Linking HES")
+
+        link_hes(
+                f"{dir_data}{outFile}",
+                config_preproc["path_hes"],
+                config_preproc["col_patid_cprd"],
+                config_preproc["col_patid_hes"],
+                f"{dir_data}dat_hesLinked.parquet",
+                )
+        if flag_temp_file:
+            os.remove(outFile)
+        else:
+            flag_temp_file = True
+        outFile = "dat_hesLinked.parquet"
+
+        # In file = Paths.DAT_AURGOLD
+        # write to Paths.DAT_HES_LINK
+        logger.info("   Linking HES finished")
 
     ###MergeCols#####################################################################
     if outFile.find(".csv") != -1:
