@@ -9,6 +9,7 @@ from polars import Int64 as plInt64
 from polars import Categorical as plCategorical
 from polars import Date as plDate
 from polars import when as plwhen
+from polars import all as plall
 import gc
 import pyarrow.dataset as ds
 from pyarrow.csv import CSVWriter
@@ -470,21 +471,20 @@ def link_hes(path_dat: str,
     if path_dat.endswith("csv"):
         dat = scan_csv(path_dat, infer_schema_length=0,)
     elif path_dat.endswith("parquet"):
-        dat = scan_parquet(path_dat,)
+        dat = scan_parquet(path_dat,).with_columns(plall().cast(plUtf8))
     else:
         raise Exception("Cannot determine file type")
 
     if path_hes.endswith("csv"):
         dat_hes = scan_csv(path_hes, infer_schema_length=0,)
     elif path_hes.endswith("parquet"):
-        dat_hes = scan_parquet(path_hes,)
+        dat_hes = scan_parquet(path_hes,).with_columns(plall().cast(plUtf8))
     else:
         raise Exception("Cannot determine file type")
 
     query = (
             dat
             .join(
-                # for conditions with all dates of diagnosis, take earliest
                 dat_hes,
                 left_on=dat_linkCol,
                 right_on=hes_linkCol,
