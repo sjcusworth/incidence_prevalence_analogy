@@ -97,5 +97,32 @@ censor:
 
 report:
   table1: True
+  table1_catgs:
+    - 'AGE_CATEGORY'
+    - 'SEX'
+    - 'pat_catg_a'
+    - 'pat_catg_b'
+  table1_nums: []
+
   crude: True
+  catgs_crude:
+    - 'Overall'
+    - 'AGE_CATEGORY'
+    - 'SEX'
+    - 'pat_catg_a'
+    - 'pat_catg_b'
+
   strd: False
+  catgs_strd:
+    - "Overall"
+    - "catg_a"
+    - "catg_b"
+
+  layout:
+    ticklabelstep: 1
+    marker_opacity: 1.0
+    marker_size: 15
+    line_opacity: 0.8
+    line_width: 3.5
+    error_y_thickness: 2.0
+    error_y_width: 2.5
