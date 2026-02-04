@@ -32,8 +32,8 @@ def preprocessing(
     logger.info("Formatting null values")
 
     if config_preproc["filename"] is None:
-        filesToFormat = [f"{dir_data}{config_preproc['filename_gold']}",
-                         f"{dir_data}{config_preproc['filename_aurum']}"]
+        filesToFormat = [config_preproc['filename_gold'],
+                         config_preproc['filename_aurum'],]
         if config_preproc["filename_gold"][-3:] == "csv":
             config_preproc['filename_gold'] = f"{config_preproc['filename_gold'][:-4]}_formNulls.parquet"
             config_preproc['filename_aurum'] = f"{config_preproc['filename_aurum'][:-4]}_formNulls.parquet"
@@ -43,7 +43,7 @@ def preprocessing(
         else:
             raise Exception("File type not recognised")
     else:
-        filesToFormat = [f"{dir_data}{config_preproc['filename']}"]
+        filesToFormat = [config_preproc['filename']]
         if filesToFormat[0][-3:] == "csv":
             config_preproc["filename"] = f"{filesToFormat[0][:-4]}_formNulls.parquet"
         elif filesToFormat[0][-7:] == "parquet":
@@ -53,10 +53,10 @@ def preprocessing(
 
     for file_ in filesToFormat:
         if file_[-3:] == "csv":
-            dat = pl.scan_csv(file_, infer_schema_length=0)
+            dat = pl.scan_csv(f"{dir_data}{file_}", infer_schema_length=0)
             file_root_ = file_[:-4]
         elif file_[-7:] == "parquet":
-            dat = pl.scan_parquet(file_)
+            dat = pl.scan_parquet(f"{dir_data}{file_}")
             file_root_ = file_[:-8]
         else:
             raise Exception("File type not recognised")
@@ -83,8 +83,8 @@ def preprocessing(
 
         outFile="dat_linked.parquet"
         rmDup(
-            f"{dir_data}{dat_a}",
-            f"{dir_data}{dat_b}",
+            dat_a,
+            dat_b,
             A_ind=0,
             B_ind=2,
             map_file=f"{dir_data}{config_preproc['map_file_AtoB']}",

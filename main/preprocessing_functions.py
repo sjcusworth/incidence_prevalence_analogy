@@ -55,8 +55,8 @@ def rmDup(
         #Read in data
             #infer_schema_length=0 reads all cols as utf8 (str)
             #preventing type errors when concat
-        A_raw = scan_csv(A_raw, infer_schema_length=0, low_memory=low_memory)
-        B_raw = scan_csv(B_raw, infer_schema_length=0, low_memory=low_memory)
+        A_raw = scan_csv(f"{wdir}{A_raw}", infer_schema_length=0, low_memory=low_memory)
+        B_raw = scan_csv(f"{wdir}{B_raw}", infer_schema_length=0, low_memory=low_memory)
 
     elif A_raw.endswith(".parquet"):
         #Get names for naming of output csv
@@ -66,13 +66,13 @@ def rmDup(
             #infer_schema_length=0 reads all cols as utf8 (str)
             #preventing type errors when concat
         A_raw = (
-                scan_parquet(A_raw, low_memory=low_memory)
+                scan_parquet(f"{wdir}{A_raw}", low_memory=low_memory)
                 .with_columns(
                     col("*").cast(plUtf8)
                     )
                  )
         B_raw = (
-                scan_parquet(B_raw, low_memory=low_memory)
+                scan_parquet(f"{wdir}{B_raw}", low_memory=low_memory)
                 .with_columns(
                     col("*").cast(plUtf8)
                     )
