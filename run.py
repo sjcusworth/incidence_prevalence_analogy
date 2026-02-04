@@ -161,7 +161,6 @@ if opt == "censor":
     from main.smallNumCens import small_num_censor
     small_num_censor(
             n = config["censor"]["n"],
-            crude = config["censor"]["crude"],
             strd = config["censor"]["strd"],
             dir_out = config["dir_out"],
             )

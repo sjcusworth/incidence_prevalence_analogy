@@ -9,7 +9,6 @@ from pandas import read_excel as pd_read_excel
 
 def small_num_censor(
         n: int,
-        crude: bool,
         strd: bool,
         dir_out: str,
         dir_cens: str = "Publish/",
@@ -92,33 +91,34 @@ def small_num_censor(
     dat_crude_inc = getCrudeMap(f"{dir_out}{dir_cens}/inc_crude.csv")
     dat_crude_prev = getCrudeMap(f"{dir_out}{dir_cens}/prev_crude.csv")
 
-    ## Combine dsr files with numerators from crude (need to define values to censor)
-    dat_dsr_inc = pl.read_csv(f"{dir_out}inc_DSR.csv", infer_schema_length=0,)
-    dat_dsr_prev = pl.read_csv(f"{dir_out}prev_DSR.csv", infer_schema_length=0,)
+    if strd:
+        ## Combine dsr files with numerators from crude (need to define values to censor)
+        dat_dsr_inc = pl.read_csv(f"{dir_out}inc_DSR.csv", infer_schema_length=0,)
+        dat_dsr_prev = pl.read_csv(f"{dir_out}prev_DSR.csv", infer_schema_length=0,)
 
-    dat_dsr_inc = (
-            dat_dsr_inc
-            .join(
-                dat_crude_inc,
-                on=["Subgroup", "Date", "Condition"],
-                how="left",
+        dat_dsr_inc = (
+                dat_dsr_inc
+                .join(
+                    dat_crude_inc,
+                    on=["Subgroup", "Date", "Condition"],
+                    how="left",
+                    )
                 )
-            )
-    dat_dsr_inc.write_csv(f"{dir_out}{dir_cens}/inc_DSR.csv")
+        dat_dsr_inc.write_csv(f"{dir_out}{dir_cens}/inc_DSR.csv")
 
-    dat_dsr_prev = (
-            dat_dsr_prev
-            .join(
-                dat_crude_prev,
-                on=["Subgroup", "Date", "Condition"],
-                how="left",
+        dat_dsr_prev = (
+                dat_dsr_prev
+                .join(
+                    dat_crude_prev,
+                    on=["Subgroup", "Date", "Condition"],
+                    how="left",
+                    )
                 )
-            )
-    dat_dsr_prev.write_csv(f"{dir_out}{dir_cens}/prev_DSR.csv")
+        dat_dsr_prev.write_csv(f"{dir_out}{dir_cens}/prev_DSR.csv")
 
-    del dat_dsr_inc
-    del dat_dsr_prev
-    gc.collect()
+        del dat_dsr_inc
+        del dat_dsr_prev
+        gc.collect()
 
 
     ## Setting small counts and corresponding incprev to null
@@ -193,7 +193,7 @@ def small_num_censor(
         smallCountsCens(f"{dir_out}{dir_cens}prev_DSR.csv", ["Numerator"], metric=["Prevalence"])
         pl.read_csv(f"{dir_out}{dir_cens}prev_DSR.csv", infer_schema_length=0).select(pl.all().exclude("Numerator")).write_csv(f"{dir_out}{dir_cens}prev_DSR.csv")
 
-    if crude:
-        smallCountsCens(f"{dir_out}{dir_cens}prev_crude.csv", ["Numerator", "Denominator",], metric=["Prevalence"])
-        smallCountsCens(f"{dir_out}{dir_cens}inc_crude.csv", ["Numerator", "Denominator",], metric=["Incidence"])
+    # crude
+    smallCountsCens(f"{dir_out}{dir_cens}prev_crude.csv", ["Numerator", "Denominator",], metric=["Prevalence"])
+    smallCountsCens(f"{dir_out}{dir_cens}inc_crude.csv", ["Numerator", "Denominator",], metric=["Incidence"])
 
