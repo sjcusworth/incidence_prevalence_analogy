@@ -5,6 +5,7 @@ import csv
 import multiprocessing as mp
 from itertools import repeat
 import logging
+from re import sub
 import yaml
 
 import polars as pl
@@ -69,6 +70,12 @@ def preprocessing(
                         .name.keep()
                     )
                 )
+
+        # rm numeric suffix from Dexter out (assumes unique codelist names)
+        change_colnames = {k:"" for k in dat.collect_schema().names() if k.startswith("BD_MEDI:")}
+        change_colnames = {k:sub(r":\d+$", "", k) for k in change_colnames.keys()}
+        dat = dat.rename(change_colnames)
+
         dat.sink_parquet(f"{dir_data}{file_root_}_formNulls.parquet")
     logger.info("    Formatting null values finished")
     del dat
