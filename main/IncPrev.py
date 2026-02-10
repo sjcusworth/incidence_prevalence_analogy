@@ -148,9 +148,9 @@ def run_incprev(conf_incprev: dict,
         N_PROCESSES = conf_incprev["n_processes"]
 
         if N_PROCESSES is None:
-            pool = mp.Pool(processes = mp.cpu_count() - 2)
+            pool = mp.get_context("spawn").Pool(processes = mp.cpu_count() - 2)
         else:
-            pool = mp.Pool(processes = N_PROCESSES)
+            pool = mp.get_context("spawn").Pool(processes = N_PROCESSES)
         pool.starmap(processBatch, batches)
 
     files_out = os.listdir(dir_out)
