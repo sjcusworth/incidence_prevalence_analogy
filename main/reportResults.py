@@ -45,7 +45,7 @@ def report_results(
 
     ###############################################################################
     ## plot graphs
-    def plot_scatters(catgs, file_prev, file_inc,):
+    def plot_scatters(catgs, file_prev, file_inc, label_graphs):
         for dir_ in (config['dir_out'], f"{config['dir_out']}Publish/"):
             # check files exist (e.g. where not run censoring)
             try:
@@ -88,9 +88,9 @@ def report_results(
                                 is_errorY = True,
                                 cols_errorY = ["Lower_CI", "Upper_CI"],
                                 )
-                        move(f"{label_}.html", f"{dir_}{label_}_strd_{cond_}_{group_}.html")
+                        move(f"{label_}.html", f"{dir_}{label_}_{label_graphs}_{cond_}_{group_}.html")
 
     if crude:
-        plot_scatters(config["report"]["catgs_crude"], "prev_crude.csv", "inc_crude.csv")
+        plot_scatters(config["report"]["catgs_crude"], "prev_crude.csv", "inc_crude.csv", "crude",)
     if strd:
-        plot_scatters(config["report"]["catgs_strd"], "prev_DSR.csv", "inc_DSR.csv")
+        plot_scatters(config["report"]["catgs_strd"], "prev_DSR.csv", "inc_DSR.csv", "strd",)
