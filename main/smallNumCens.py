@@ -7,6 +7,41 @@ import polars as pl
 from distutils.dir_util import copy_tree
 from pandas import read_excel as pd_read_excel
 
+def getCrudeMap(filePath,) -> pl.DataFrame:
+    dat_ = (
+            pl.read_csv(filePath, infer_schema_length=0,)
+            .with_columns(
+                pl.col("Numerator").cast(pl.Int64)
+                )
+            .select(pl.col(["Subgroup", "Date", "Condition", "Numerator", "Group",]))
+            # remove age, sex part of subgroup label
+            .with_columns(
+                pl.col("Subgroup").map_elements(lambda x: "'" + "', '".join(["".join([char for char in label.strip() if char not in ["'", "(", ")", '"']]) for label in x.split(",")[2:]]) + "'"),
+                )
+            .filter(pl.col("Subgroup")!="''")
+            .filter(pl.col("Group").str.starts_with("AGE_CATEGORY, SEX"))
+            .with_columns(
+                pl.col("Subgroup").str.replace_all("'", "")
+                )
+            .select(pl.all().exclude("Group"))
+            )
+    dat_ = (
+            dat_
+            .group_by(pl.col(["Subgroup", "Date", "Condition"])).sum()
+            )
+    dat_overall_ = (
+            pl.read_csv(filePath, infer_schema_length=0,)
+            .select(pl.col(["Group", "Date", "Condition", "Numerator",]))
+            .filter(pl.col("Group")=="Overall")
+            .rename({"Group": "Subgroup"})
+            .with_columns(
+                pl.col("Numerator").cast(pl.Int64)
+                )
+            )
+    dat_ = pl.concat([dat_, dat_overall_])
+
+    return dat_
+
 def small_num_censor(
         n: int,
         strd: bool,
@@ -31,63 +66,6 @@ def small_num_censor(
         dat.write_csv(path_output_)
 
     ### Censor small counts ######################################################
-
-    def getCrudeMap(filePath,) -> pl.DataFrame:
-        dat_ = (
-                pl.read_csv(filePath, infer_schema_length=0,)
-                .with_columns(
-                    pl.col("Numerator").cast(pl.Int64)
-                    )
-                .select(pl.col(["Subgroup", "Date", "Condition", "Numerator", "Group",]))
-                .with_columns(
-                    pl.col("Subgroup").map_elements(lambda x: "'" + "', '".join(["".join([char for char in label.strip() if char not in ["'", "(", ")", '"']]) for label in x.split(",")[2:]]) + "'"),
-                    )
-                .filter(pl.col("Subgroup")!="''")
-                .filter(pl.col("Group").str.starts_with("AGE_CATEGORY, SEX"))
-                .with_columns(
-                    pl.col("Subgroup").str.replace_all("'", "")
-                    )
-                .select(pl.all().exclude("Group"))
-                )
-        dat_ = (
-                dat_
-                .group_by(pl.col(["Subgroup", "Date", "Condition"])).sum()
-                )
-        dat_check = (
-                pl.read_csv(filePath, infer_schema_length=0,)
-                .with_columns(
-                    pl.col("Numerator").cast(pl.Int64)
-                    )
-                .select(pl.col(["Subgroup", "Date", "Condition", "Numerator", "Group",]))
-                .filter(pl.col("Group")=="ETHNICITY")
-                .with_columns(
-                    pl.col("Subgroup").str.replace_all("'", "")
-                    )
-                .select(pl.all().exclude("Group"))
-                )
-        dat_check = (
-                dat_check
-                .join(
-                    dat_,
-                    on=["Subgroup", "Date", "Condition"],
-                    how="left",
-                    )
-                )
-        if dat_check.filter(pl.col("Numerator_right")!=pl.col("Numerator")).shape[0] != 0:
-            raise ValueError("Mapping file not got correct values")
-        dat_overall_ = (
-                pl.read_csv(filePath, infer_schema_length=0,)
-                .select(pl.col(["Group", "Date", "Condition", "Numerator",]))
-                .filter(pl.col("Group")=="Overall")
-                .rename({"Group": "Subgroup"})
-                .with_columns(
-                    pl.col("Numerator").cast(pl.Int64)
-                    )
-                )
-        dat_ = pl.concat([dat_, dat_overall_])
-
-        return dat_
-
     dat_crude_inc = getCrudeMap(f"{dir_out}{dir_cens}/inc_crude.csv")
     dat_crude_prev = getCrudeMap(f"{dir_out}{dir_cens}/prev_crude.csv")
 
