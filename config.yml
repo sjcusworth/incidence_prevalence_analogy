@@ -11,7 +11,7 @@ dir_out: !!str "out/"
 date_fmt: !!str "%d-%m-%Y"
 
 processing:
-  filename: !!str "example.parquet" #raw/unprocessed
+  filename: !!str "data_test.csv" #raw/unprocessed
 
   #if linking Gold/Aurum, set filename above to null
   #removing duplicates from Gold
@@ -77,8 +77,12 @@ incprev:
     #if no DEMOGRAPHY, set as empty list []
     - 'pat_catg_a'
     - 'pat_catg_b'
+    - "AGE_CATEGORY"
+    - "SEX"
+    - ["AGE_CATEGORY", "SEX"]
     - ["AGE_CATEGORY", "SEX", "pat_catg_a"]
     - ["AGE_CATEGORY", "SEX", "pat_catg_b"]
+    - ["AGE_CATEGORY", "SEX", "pat_catg_a", "pat_catg_b"]
 
 strd:
   reference_population: "UK Age-Sex Pop Structure.csv"
@@ -89,11 +93,12 @@ strd:
     Overall: "AGE_CATEGORY, SEX"
     catg_a: "AGE_CATEGORY, SEX, pat_catg_a"
     catg_b: "AGE_CATEGORY, SEX, pat_catg_b"
+    catg_both: "AGE_CATEGORY, SEX, pat_catg_a, pat_catg_b"
 
 censor:
   #crude censored by default
   n: 10
-  strd: False
+  strd: True
 
 report:
   table1: True
@@ -112,7 +117,7 @@ report:
     - 'pat_catg_a'
     - 'pat_catg_b'
 
-  strd: False
+  strd: True
   catgs_strd:
     - "Overall"
     - "catg_a"
