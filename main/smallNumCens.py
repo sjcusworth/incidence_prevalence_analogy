@@ -14,6 +14,11 @@ def getCrudeMap(filePath,) -> pl.DataFrame:
                 pl.col("Numerator").cast(pl.Int64)
                 )
             .select(pl.col(["Subgroup", "Date", "Condition", "Numerator", "Group",]))
+            # remove intersex (done in the strd script so needed here)
+            .filter(
+                ~pl.col("Subgroup").str.contains(", I,"),
+                ~pl.col("Subgroup").str.ends_with(", I"),
+                )
             # remove age, sex part of subgroup label
             .with_columns(
                 pl.col("Subgroup").map_elements(lambda x: "'" + "', '".join(["".join([char for char in label.strip() if char not in ["'", "(", ")", '"']]) for label in x.split(",")[2:]]) + "'"),
