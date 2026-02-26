@@ -26,7 +26,7 @@ def getCrudeMap(filePath,) -> pl.DataFrame:
             .filter(pl.col("Subgroup")!="''")
             .filter(pl.col("Group").str.starts_with("AGE_CATEGORY, SEX"))
             .with_columns(
-                pl.col("Subgroup").str.replace_all("'", "")
+                pl.col("Subgroup").str.replace_all("'", "").str.replace_all(" ", ""),
                 )
             .select(pl.all().exclude("Group"))
             )

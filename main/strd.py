@@ -49,8 +49,6 @@ def standardise_incprev(
     incprev.raw_data_prev["Upper_CI"] = incprev.raw_data_prev["Upper_CI"].apply(lambda x: x if x!=np.inf else 0)#np.NaN)
 
     def fmt_data(df):
-        df["Condition"] = df["Condition"].map(lambda x: ''.join(letter for letter in x if letter.isalnum()).replace("BDMEDI",""))
-
         overall_map = (df["Group"] == "Overall")
         df["Subgroup"][overall_map] = ""
 
